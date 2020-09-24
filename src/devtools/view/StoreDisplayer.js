@@ -3,7 +3,7 @@ import Record from "./Components/Record";
 import { debounce } from "../utils";
 
 //update record list to current selection
-function updateRecords(store, selection) {
+export function updateRecords(store, selection) {
   if (store) {
     if (selection === "") {
       return store;
@@ -26,7 +26,7 @@ function updateRecords(store, selection) {
 }
 
 //generate list of menu elements
-function generateComponentsList(
+export function generateComponentsList(
   store,
   searchResults,
   recordsList,
@@ -89,7 +89,7 @@ function generateComponentsList(
   return typeList;
 }
 
-const StoreDisplayer = ({ store }) => {
+export default function StoreDisplayer({ store }) {
   const [recordsList, setRecordsList] = useState({});
   const [selection, setSelection] = useState("");
   const [searchResults, setSearchResults] = useState("");
@@ -129,12 +129,12 @@ const StoreDisplayer = ({ store }) => {
 
   //verify recordsList is not undefined and then generate list of components
   const typeList = (recordsList === undefined ? [] : generateComponentsList(
-      store,
-      searchResults,
-      recordsList,
-      selection,
-      handleMenuClick
-    ));
+    store,
+    searchResults,
+    recordsList,
+    selection,
+    handleMenuClick
+  ));
 
   return (
     <React.Fragment>
@@ -173,5 +173,3 @@ const StoreDisplayer = ({ store }) => {
     </React.Fragment>
   );
 };
-
-export default StoreDisplayer;

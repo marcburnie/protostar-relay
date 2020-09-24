@@ -1,10 +1,20 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import InputRange from "react-input-range";
 import { BridgeContext, StoreContext } from "../context";
 import StoreDisplayer from "./StoreDisplayer";
 import SnapshotLinks from "./Components/SnapshotLinks";
 
-const StoreTimeline = ({ currentEnvID }) => {
+//send request to refresh store
+export function refreshLiveStore(bridge, currentEnvID) {
+  bridge.send("refreshStore", currentEnvID);
+};
+
+//update livestore when store is updated
+export function refreshEvents(store, currentEnvID) {
+  return store.getRecords(currentEnvID);
+};
+
+export default function StoreTimeline({ currentEnvID }) {
   const store = useContext(StoreContext);
   const bridge = useContext(BridgeContext);
   const [snapshotIndex, setSnapshotIndex] = useState(0);
@@ -35,37 +45,20 @@ const StoreTimeline = ({ currentEnvID }) => {
     setSnapshotIndex(newTimeline.length);
   };
 
-  const handleSnapshot = (index) => {
-    setSnapshotIndex(index);
-  };
-
-  const updateStoreHelper = (storeObj) => {
-    setLiveStore(storeObj);
-  };
-
   // triggering refresh of store on completed mutation
   React.useEffect(() => {
-    const refreshLiveStore = () => {
-      bridge.send("refreshStore", currentEnvID);
-    };
-    const refreshEvents = () => {
-      const allRecords = store.getRecords(currentEnvID);
-      updateStoreHelper(allRecords);
-    };
-
-    store.addListener("storeDataReceived", refreshEvents);
-    store.addListener("allEventsReceived", refreshEvents);
-    store.addListener("mutationComplete", refreshLiveStore);
-
+    store.addListener("storeDataReceived", () => { setLiveStore(refreshEvents(store, currentEnvID)) });
+    store.addListener("allEventsReceived", () => { setLiveStore(refreshEvents(store, currentEnvID)) });
+    store.addListener("mutationComplete", () => { refreshLiveStore(bridge, currentEnvID) });
     return () => {
-      store.removeListener("mutationComplete", refreshLiveStore);
-      store.removeListener("storeDataReceived", refreshEvents);
-      store.removeListener("allEventsReceived", refreshEvents);
+      store.removeListener("storeDataReceived", () => { setLiveStore(refreshEvents(store, currentEnvID)) });
+      store.removeListener("allEventsReceived", () => { setLiveStore(refreshEvents(store, currentEnvID)) });
+      store.removeListener("mutationComplete", () => { refreshLiveStore(bridge, currentEnvID) });
     };
   }, [store]);
 
   React.useEffect(() => {
-    const allRecords = store.getRecords(currentEnvID);
+    const allRecords = store.getRecords(currentEnvID)
     setLiveStore(allRecords);
 
     if (!timeline[currentEnvID]) {
@@ -85,8 +78,6 @@ const StoreTimeline = ({ currentEnvID }) => {
       setSnapshotIndex(timeline[currentEnvID].length);
     }
   }, [currentEnvID]);
-
-  console.log("showing livestore", !timeline[currentEnvID] || !timeline[currentEnvID][snapshotIndex] || snapshotIndex === timeline[currentEnvID].length)
 
   return (
     <React.Fragment>
@@ -123,7 +114,7 @@ const StoreTimeline = ({ currentEnvID }) => {
             />
             <div className="snapshot-nav has-text-centered has-text-right-mobile">
               <button
-                class="button is-small is-info is-light"
+                className="button is-small is-info is-light"
                 onClick={() => {
                   if (snapshotIndex !== 0) setSnapshotIndex(snapshotIndex - 1);
                 }}
@@ -133,13 +124,13 @@ const StoreTimeline = ({ currentEnvID }) => {
                 </span>
               </button>
               <button
-                class="button is-small is-info is-light"
+                className="button is-small is-info is-light"
                 onClick={() => setSnapshotIndex(timeline[currentEnvID].length)}
               >
                 Current
               </button>
               <button
-                class="button is-small is-info is-light"
+                className="button is-small is-info is-light"
                 onClick={() => {
                   if (snapshotIndex !== timeline[currentEnvID].length)
                     setSnapshotIndex(snapshotIndex + 1);
@@ -158,7 +149,7 @@ const StoreTimeline = ({ currentEnvID }) => {
             {timeline[currentEnvID] && (
               <SnapshotLinks
                 currentEnvID={currentEnvID}
-                handleSnapshot={handleSnapshot}
+                handleSnapshot={(index) => setSnapshotIndex(index)}
                 timeline={timeline}
               />
             )}
@@ -168,8 +159,8 @@ const StoreTimeline = ({ currentEnvID }) => {
       <StoreDisplayer
         store={
           !timeline[currentEnvID] ||
-          !timeline[currentEnvID][snapshotIndex] ||
-          snapshotIndex === timeline[currentEnvID].length
+            !timeline[currentEnvID][snapshotIndex] ||
+            snapshotIndex === timeline[currentEnvID].length
             ? liveStore
             : timeline[currentEnvID][snapshotIndex].storage
         }
@@ -177,5 +168,3 @@ const StoreTimeline = ({ currentEnvID }) => {
     </React.Fragment>
   );
 };
-
-export default StoreTimeline;

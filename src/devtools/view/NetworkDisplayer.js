@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { StoreContext } from '../context';
 import Record from './Components/Record';
 import { execute } from "graphql";
 import { debounce } from '../utils'
 
 //iterates over each event and joins events based on transactionID and sorts by type
-const combineEvents = (events) => {
+export function combineEvents(events) {
   const combinedEvents = {};
   const eventTypes = {};
   //join events by transactionID
@@ -34,8 +34,8 @@ const combineEvents = (events) => {
 }
 
 //generates a list of elements for the menu and the events listing
-const generateElementList = (events, searchResults, selection, handleMenuClick) => {
-    const eventMenu = [];
+export function generateElementList(events, searchResults, selection, handleMenuClick) {
+  const eventMenu = [];
   const eventsList = [];
 
   //for each event - add to menu list
@@ -48,7 +48,7 @@ const generateElementList = (events, searchResults, selection, handleMenuClick) 
       if (new RegExp(searchResults, "i").test(JSON.stringify(events[type][id]))) {
         typeList.push(
           <li>
-            <a id={id} className={(selection === (id)) && "is-active"} onClick={(e) => { handleMenuClick(e, id) }}>{events[type][id].request.name}</a>
+            <a id={id} className={(selection === (id)) && "is-active"} onClick={() => { handleMenuClick(id) }}>{events[type][id].request.name}</a>
           </li>)
         //creates an array of elements for all events
         eventsList.push(
@@ -62,7 +62,7 @@ const generateElementList = (events, searchResults, selection, handleMenuClick) 
     //pushes the new type element with child events to the typeList component array
     eventMenu.push(
       <li>
-        <a id={type} className={(selection === type) && "is-active"} onClick={(e) => { handleMenuClick(e, type) }}>
+        <a id={type} className={(selection === type) && "is-active"} onClick={() => { handleMenuClick(type) }}>
           {type}
         </a>
         <ul>{typeList}</ul>
@@ -72,13 +72,13 @@ const generateElementList = (events, searchResults, selection, handleMenuClick) 
   return { eventMenu, eventsList };
 }
 
-const NetworkDisplayer = ({currentEnvID}) => {
+export default function NetworkDisplayer({ currentEnvID }) {
   const [selection, setSelection] = useState("");
   const [events, setEvents] = useState([]);
   const [searchResults, setSearchResults] = useState("");
   const store = useContext(StoreContext);
 
-  useEffect(() => {
+  React.useEffect(() => {
     //on mutation all store events are pulled and processed with events state updated
     const onMutated = () => {
       setEvents(combineEvents(store._environmentEventsMap.get(currentEnvID) || []));
@@ -90,37 +90,21 @@ const NetworkDisplayer = ({currentEnvID}) => {
     };
   }, [store]);
 
-  //handle type menu click events
-  function handleMenuClick(e, id) {
-    //set new selection
-    setSelection(id);
-  }
-
-  //shows you the entire network
-  function handleReset(e) {
-    //remove selection;
-    setSelection("");
-  };
-
-  //updates search results
+  //updates and debounces search results
   const debounced = debounce((val) => setSearchResults(val), 300)
-  function handleSearch(e) {
-    //debounce search
-    debounced(e.target.value)
-  }
 
   //generate menu list and events list
-  const {eventMenu, eventsList} = generateElementList(events, searchResults, selection, handleMenuClick)
+  const { eventMenu, eventsList } = generateElementList(events, searchResults, selection, (id) => setSelection(id))
 
   return (
     <React.Fragment>
       <div className="column is-one-third">
         <p class="control has-icons-left">
-          <input className="input is-small is-primary" type="text" placeholder="Search" onChange={(e) => { handleSearch(e) }}></input>
+          <input className="input is-small is-primary" type="text" placeholder="Search" onChange={(e) => { debounced(e.target.value) }}></input>
           <button
             className="button is-small is-link my-2"
             onClick={(e) => {
-              handleReset(e);
+              setSelection("");
             }}
           >
             Reset
@@ -142,5 +126,3 @@ const NetworkDisplayer = ({currentEnvID}) => {
     </React.Fragment>
   );
 };
-
-export default NetworkDisplayer;

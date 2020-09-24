@@ -12,6 +12,7 @@ describe('NetworkDisplayer', () => {
 
   beforeAll(() => {
     wrapper = shallow(<NetworkDisplayer {...props} />);
+
   });
 
   it("My Test Case", () => {

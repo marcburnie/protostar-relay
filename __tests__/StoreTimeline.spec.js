@@ -1,25 +1,41 @@
 import React from 'react';
-import { configure, shallow, render } from 'enzyme';
+import { configure, shallow, render, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import renderer from 'react-test-renderer';
 import StoreTimeline from '../src/devtools/view/StoreTimeline';
+import { BridgeContext, StoreContext } from "../src/devtools/context";
+import Store from "../src/devtools/store";
 
 configure({ adapter: new Adapter() });
 
 describe('StoreTimeline', () => {
   let wrapper;
+  let full;
   const props = {
     currentEnvID: 1,
   }
+  const bridge = { "hi": "there" };
+  const store = Object.assign(Store, {
+    "getRecords": () => { return { "yes": "no" } },
+  })
 
 
   beforeEach(() => {
     wrapper = shallow(<StoreTimeline {...props} />);
+    // full = mount(
+    //   <BridgeContext.Provider value={bridge}>
+    //     <StoreContext.Provider value={store}>
+    //       <StoreTimeline {...props} />
+    //     </StoreContext.Provider>
+    //   </BridgeContext.Provider>
+    // );
   });
 
   it("Renders a StoreDisplayer component and passes store as a prop", () => {
     expect(wrapper.find('StoreDisplayer').length).toEqual(1);
+
   })
+
 
   // it("Passes the store based on the currentEnvID", () => {
   // })

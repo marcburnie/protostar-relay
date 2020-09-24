@@ -22,42 +22,28 @@ export type ViewElementSource = (id: number) => void;
 
 export type Props = {|
   bridge: FrontendBridge,
-  // defaultTab?: TabID,
-  // showTabBar?: boolean,
-  store: Store,
-  viewElementSourceFunction?: ?ViewElementSource,
-  viewElementSourceRequiresFileLocation?: boolean,
+    // defaultTab?: TabID,
+    // showTabBar?: boolean,
+    store: Store,
+      viewElementSourceFunction ?: ? ViewElementSource,
+      viewElementSourceRequiresFileLocation ?: boolean,
 
-  // This property is used only by the web extension target.
-  // The built-in tab UI is hidden in that case, in favor of the browser's own panel tabs.
-  // This is done to save space within the app.
-  // Because of this, the extension needs to be able to change which tab is active/rendered.
-  // overrideTab?: TabID,
+      // This property is used only by the web extension target.
+      // The built-in tab UI is hidden in that case, in favor of the browser's own panel tabs.
+      // This is done to save space within the app.
+      // Because of this, the extension needs to be able to change which tab is active/rendered.
+      // overrideTab?: TabID,
 
-  // TODO: Cleanup multi-tabs in webextensions
-  // To avoid potential multi-root trickiness, the web extension uses portals to render tabs.
-  // The root <DevTools> app is rendered in the top-level extension window,
-  // but individual tabs (e.g. Components, Profiling) can be rendered into portals within their browser panels.
-  rootContainer?: Element,
-  // networkPortalContainer?: Element,
-  settingsPortalContainer?: Element,
-  storeInspectorPortalContainer?: Element,
+      // TODO: Cleanup multi-tabs in webextensions
+      // To avoid potential multi-root trickiness, the web extension uses portals to render tabs.
+      // The root <DevTools> app is rendered in the top-level extension window,
+      // but individual tabs (e.g. Components, Profiling) can be rendered into portals within their browser panels.
+      rootContainer ?: Element,
+      // networkPortalContainer?: Element,
+      settingsPortalContainer ?: Element,
+      storeInspectorPortalContainer ?: Element,
 |};
 
-const networkTab = {
-  id: ("network": TabID),
-  icon: "network",
-  label: "Network",
-  title: "Relay Network",
-};
-const storeInspectorTab = {
-  id: ("store-inspector": TabID),
-  icon: "store-inspector",
-  label: "Store",
-  title: "Relay Store",
-};
-
-const tabs = [networkTab, storeInspectorTab];
 
 export default function DevTools({
   bridge,
@@ -92,22 +78,12 @@ export default function DevTools({
     };
   }, [store, setEnv]);
 
-  function handleTabClick(e, tab) {
-    setSelector(tab);
-  }
-
-  const handleChange = useCallback((e) => {
-    setCurrentEnvID(parseInt(e.target.value));
-  }, []);
-
-  console.log("currentenvid before render", currentEnvID)
-
   return (
     <BridgeContext.Provider value={bridge}>
       <StoreContext.Provider value={store}>
         <div className="navigation">
           <form className="env-select select is-small is-pulled-left">
-            <select className="env-select" onChange={handleChange}>
+            <select className="env-select" onChange={(e) => setCurrentEnvID(parseInt(e.target.value))}>
               {environmentIDs.map((id) => {
                 return (
                   <option key={id} value={id}>
@@ -122,7 +98,7 @@ export default function DevTools({
               <li className={selector === "Store" && "is-active"}>
                 <a
                   id="storeSelector"
-                  onClick={(e) => handleTabClick(e, "Store")}
+                  onClick={() => setSelector("Store")}
                 >
                   <span className="icon is-small">
                     <i className="fas fa-database"></i>
@@ -133,9 +109,7 @@ export default function DevTools({
               <li className={selector === "Network" && "is-active"}>
                 <a
                   id="networkSelector"
-                  onClick={(e) => {
-                    handleTabClick(e, "Network");
-                  }}
+                  onClick={() => setSelector("Network")}
                 >
                   <span className="icon is-small">
                     <i className="fas fa-network-wired"></i>

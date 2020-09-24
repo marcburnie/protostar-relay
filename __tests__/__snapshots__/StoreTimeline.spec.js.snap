@@ -110,7 +110,7 @@ Array [
           className="snapshot-nav has-text-centered has-text-right-mobile"
         >
           <button
-            class="button is-small is-info is-light"
+            className="button is-small is-info is-light"
             onClick={[Function]}
           >
             <span
@@ -122,13 +122,13 @@ Array [
             </span>
           </button>
           <button
-            class="button is-small is-info is-light"
+            className="button is-small is-info is-light"
             onClick={[Function]}
           >
             Current
           </button>
           <button
-            class="button is-small is-info is-light"
+            className="button is-small is-info is-light"
             onClick={[Function]}
           >
             <span
